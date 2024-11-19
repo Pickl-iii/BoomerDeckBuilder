@@ -16,6 +16,11 @@ const DomoSchema = new mongoose.Schema({
     min: 0,
     required: true,
   },
+  job: {
+    type: String,
+    required: true,
+    default: 'Unemployed',
+  },
   owner: {
     type: mongoose.Schema.ObjectId,
     required: true,
@@ -30,6 +35,7 @@ const DomoSchema = new mongoose.Schema({
 DomoSchema.statics.toAPI = (doc) => ({
   name: doc.name,
   age: doc.age,
+  job: doc.job,
 });
 
 const DomoModel = mongoose.model('Domo', DomoSchema);
