@@ -1,9 +1,11 @@
+// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
+
 const mongoose = require('mongoose');
 const _ = require('underscore');
 
 const setName = (name) => _.escape(name).trim();
 
-const DomoSchema = new mongoose.Schema({
+const DeckSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -11,15 +13,9 @@ const DomoSchema = new mongoose.Schema({
     unique: true,
     set: setName,
   },
-  age: {
-    type: Number,
-    min: 0,
-    required: true,
-  },
-  job: {
-    type: String,
-    required: true,
-    default: 'Unemployed',
+  cards: {
+    type: [String],
+    required: false,
   },
   owner: {
     type: mongoose.Schema.ObjectId,
@@ -32,11 +28,10 @@ const DomoSchema = new mongoose.Schema({
   },
 });
 
-DomoSchema.statics.toAPI = (doc) => ({
+DeckSchema.statics.toAPI = (doc) => ({
   name: doc.name,
-  age: doc.age,
-  job: doc.job,
+  cards: doc.cards,
 });
 
-const DomoModel = mongoose.model('Domo', DomoSchema);
-module.exports = DomoModel;
+const DeckModel = mongoose.model('Deck', DeckSchema);
+module.exports = DeckModel;

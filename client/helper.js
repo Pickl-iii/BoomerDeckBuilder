@@ -1,10 +1,12 @@
+// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
+
 /* Takes in an error message. Sets the error message up in html, and
    displays it to the user. Will be hidden by other events that could
    end in an error.
 */
 const handleError = (message) => {
     document.getElementById('errorMessage').textContent = message;
-    document.getElementById('domoMessage').classList.remove('hidden');
+    document.getElementById('userMessage').classList.remove('hidden');
   };
   
   /* Sends post requests to the server using fetch. Will look for various
@@ -20,7 +22,7 @@ const handleError = (message) => {
     });
   
     const result = await response.json();
-    document.getElementById('domoMessage').classList.add('hidden');
+    document.getElementById('userMessage').classList.add('hidden');
   
     if(result.redirect) {
       window.location = result.redirect;
@@ -36,7 +38,7 @@ const handleError = (message) => {
   };
 
   const hideError = () => {
-    document.getElementById('domoMessage').classList.add('hidden');
+    document.getElementById('userMessage').classList.add('hidden');
   };
 
   module.exports = {
