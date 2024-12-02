@@ -1,5 +1,3 @@
-// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
-
 const models = require('../models');
 
 const { Account } = models;

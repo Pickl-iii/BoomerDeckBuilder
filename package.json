@@ -1,7 +1,7 @@
 {
-  "name": "BoomerDeckBuilder",
+  "name": "domomaker",
   "version": "1.0.0",
-  "description": "A Magic: The Gathering deck building site for old school players.",
+  "description": "A Simple Login Example using Node.js, Mongo and Redis",
   "main": "./server/app.js",
   "scripts": {
     "webpack": "webpack",
@@ -18,7 +18,7 @@
     "Redis",
     "Login"
   ],
-  "author": "Dylan Pegg",
+  "author": "Cody Van De Mark / Austin Willoughby",
   "license": "Apache 2.0",
   "devDependencies": {
     "@babel/core": "^7.26.0",
@@ -34,7 +34,6 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "98.css": "^0.1.20",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "compression": "^1.7.4",

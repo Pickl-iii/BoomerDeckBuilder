@@ -1,5 +1,3 @@
-// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
-
 const requiresLogin = (req, res, next) => {
   if (!req.session.account) {
     return res.redirect('/');
