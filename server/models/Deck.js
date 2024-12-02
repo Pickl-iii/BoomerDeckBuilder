@@ -5,6 +5,27 @@ const _ = require('underscore');
 
 const setName = (name) => _.escape(name).trim();
 
+/*
+const CardSchema = new mongoose.Schema({
+  cardName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  cardImage: {
+    type: String,
+    required: true,
+    default: '',
+  },
+  cardCount: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 4,
+  },
+});
+*/
+
 const DeckSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -34,4 +55,5 @@ DeckSchema.statics.toAPI = (doc) => ({
 });
 
 const DeckModel = mongoose.model('Deck', DeckSchema);
+// const CardModel = mongoose.model('Card', CardSchema);
 module.exports = DeckModel;
