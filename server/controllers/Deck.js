@@ -62,17 +62,20 @@ const addCard = async (req, res) => {
     return res.status(400).json({ error: 'All fields are required!' });
   }
 
-  console.log(req.body.selectedDeckName);
-  console.log(req.body.cardName);
+  // console.log(req.body.selectedDeckName);
+  // console.log(req.body.cardName);
 
   try {
     // const query = { owner: req.session.account._id };
 
     // Tutorial Used: https://www.geeksforgeeks.org/mongoose-findoneandupdate-function/
-    await Deck.findOneAndUpdate(
-      { name: req.body.selectedDeckName },
-      { $push: { cards: req.body.cardName } },
-    ).exec();
+    for (let i = 0; i < req.body.cardCount; i++) {
+      // May need to add back await if this breaks.
+      Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        { $push: { cards: req.body.cardName } },
+      ).exec();
+    }
 
     return res.status(201).json({
       name: req.body.selectedDeckName,
