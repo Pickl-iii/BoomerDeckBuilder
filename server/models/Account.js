@@ -1,3 +1,5 @@
+// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
+
 /* This file defines our schema and model interface for the account data.
 
    We first import bcrypt and mongoose into the file. bcrypt is an industry

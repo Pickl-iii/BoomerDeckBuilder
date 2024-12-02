@@ -1,3 +1,5 @@
+// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
+
 const helper = require('./helper.js');
 const React = require('react');
 const {createRoot} = require('react-dom/client');
