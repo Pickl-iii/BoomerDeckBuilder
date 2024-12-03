@@ -5,6 +5,7 @@ const models = require('../models');
 const { Account } = models;
 
 const loginPage = (req, res) => res.render('login');
+const changePasswordPage = (req, res) => res.render('password');
 
 const logout = (req, res) => {
   req.session.destroy();
@@ -59,7 +60,7 @@ const signup = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const username = `${req.body.username}`;
+  const username = req.session.account.username;
   const pass = `${req.body.pass}`;
   const newPass = `${req.body.newPass}`;
   const newPass2 = `${req.body.newPass2}`;
@@ -83,6 +84,7 @@ const changePassword = async (req, res) => {
         { username },
         { $set: { password: hash } },
       ).exec();
+      req.session.account = Account.toAPI(account);
       return res.json({ redirect: '/maker' });
     } catch (err2) {
       console.log(err2);
@@ -93,6 +95,7 @@ const changePassword = async (req, res) => {
 
 module.exports = {
   loginPage,
+  changePasswordPage,
   logout,
   login,
   signup,
