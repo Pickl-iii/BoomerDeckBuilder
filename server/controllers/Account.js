@@ -60,7 +60,7 @@ const signup = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  const username = req.session.account.username;
+  const { username } = req.session.account;
   const pass = `${req.body.pass}`;
   const newPass = `${req.body.newPass}`;
   const newPass2 = `${req.body.newPass2}`;

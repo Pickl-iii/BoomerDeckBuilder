@@ -62,25 +62,67 @@ const addCard = async (req, res) => {
     return res.status(400).json({ error: 'All fields are required!' });
   }
 
-  // console.log(req.body.selectedDeckName);
-  // console.log(req.body.cardName);
-
   try {
-    // const query = { owner: req.session.account._id };
+    const query = { owner: req.session.account._id };
+    const docs = await Deck.find(query).select('name cards').lean().exec();
 
-    // Tutorial Used: https://www.geeksforgeeks.org/mongoose-findoneandupdate-function/
-    for (let i = 0; i < req.body.cardCount; i++) {
-      // May need to add back await if this breaks.
+    const url = `https://api.scryfall.com/cards/search?q=${req.body.cardName}+legal%3Aoldschool+is%3Afirstprinting`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+    });
+
+    const result = await response.json();
+
+    /*
+    let deckList = await Deck.exists({ name: req.body.selectedDeckName });
+    let duplicateCard = await deckList.exists({ cardName: req.body.cardName });
+    console.log(duplicateCard);
+    */
+
+    const deckExists = docs.find((deck) => deck.name === req.body.selectedDeckName);
+
+    if (deckExists) {
+      if (deckExists.cards.find((card) => card.cardName === req.body.cardName)) {
+        // Check if card is already in list; if so, update count to new number.
+        Deck.findOneAndUpdate(
+          { name: req.body.selectedDeckName },
+          {
+            $set: {
+              cards: {
+                cardName: result.data[0].name,
+                cardImage: result.data[0].image_uris.normal,
+                cardCount: req.body.cardCount,
+              },
+            },
+          },
+        ).exec();
+
+        return res.status(201).json({
+          name: req.body.selectedDeckName,
+          cardsAdded: req.body.cardName,
+        });
+      }
+      // Tutorial Used: https://www.geeksforgeeks.org/mongoose-findoneandupdate-function/
       Deck.findOneAndUpdate(
         { name: req.body.selectedDeckName },
-        { $push: { cards: req.body.cardName } },
+        {
+          $push: {
+            cards: {
+              cardName: result.data[0].name,
+              cardImage: result.data[0].image_uris.normal,
+              cardCount: req.body.cardCount,
+            },
+          },
+        },
       ).exec();
-    }
 
-    return res.status(201).json({
-      name: req.body.selectedDeckName,
-      cardsAdded: req.body.cardName,
-    });
+      return res.status(201).json({
+        name: req.body.selectedDeckName,
+        cardsAdded: req.body.cardName,
+      });
+    }
+    return res.status(500).json({ error: 'An error occured editing a deck. No deck located.' });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'An error occured editing a deck.' });
@@ -99,9 +141,15 @@ const removeCard = async (req, res) => {
     // const query = { owner: req.session.account._id };
 
     // Tutorial Used: https://www.geeksforgeeks.org/mongoose-remove-function/
-    await Deck.remove(
+    await Deck.findOneAndUpdate(
       { name: req.body.selectedDeckName },
-      { $pull: { cards: req.body.cardName } },
+      {
+        $pull: {
+          cards: {
+            cardName: req.body.cardName,
+          },
+        },
+      },
     ).exec();
 
     return res.status(201).json({

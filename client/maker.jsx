@@ -125,11 +125,7 @@ const handleRemoveCard = (e, onCardRemoved) => {
     e.preventDefault();
     helper.hideError();
 
-    /*
-    const cardName = e.target.querySelector('#cardName').value;
-
-    console.log(e.target);
-    console.log(cardName);
+    const cardName = e.target.querySelector('#cardName').innerHTML;
 
     if(!cardName) {
         helper.handleError('Error removing card!');
@@ -137,7 +133,7 @@ const handleRemoveCard = (e, onCardRemoved) => {
     }
 
     helper.sendPost(e.target.action, {selectedDeckName, cardName}, onCardRemoved);
-    */
+    
     return false;
 }
 
@@ -163,9 +159,9 @@ const DeckList = (props) => {
                     action="/removeCard"
                     method="POST"
                     className="removeCardForm"
-                    value={card}
+                    value={card.cardName}
                     >
-                        <p id="cardName">{card}   </p>
+                        <p>{card.cardCount} | <a id="cardName" href={card.cardImage}>{card.cardName}   </a></p>
                         <input className="removeCardSubmit" type="submit" value="Remove" />
                     </form>
                 </li>

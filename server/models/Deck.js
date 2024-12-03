@@ -5,7 +5,6 @@ const _ = require('underscore');
 
 const setName = (name) => _.escape(name).trim();
 
-/*
 const CardSchema = new mongoose.Schema({
   cardName: {
     type: String,
@@ -24,18 +23,17 @@ const CardSchema = new mongoose.Schema({
     max: 4,
   },
 });
-*/
 
 const DeckSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
     trim: true,
-    unique: true,
+    unique: false,
     set: setName,
   },
   cards: {
-    type: [String],
+    type: [CardSchema],
     required: false,
   },
   owner: {
