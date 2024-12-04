@@ -33,6 +33,17 @@ redisClient.connect().then(() => {
   const app = express();
 
   app.use(helmet());
+
+  // Copied from Charleskimani's comment: https://stackoverflow.com/questions/40360109/content-security-policy-img-src-self-data
+  app.use(
+    helmet.contentSecurityPolicy({
+      useDefaults: true,
+      directives: {
+        'img-src': ["'self'", 'https: data:'],
+      },
+    }),
+  );
+
   app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
   app.use(favicon(`${__dirname}/../hosted/img/favicon.png`));
   app.use(compression());

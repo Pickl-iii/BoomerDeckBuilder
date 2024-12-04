@@ -51,8 +51,9 @@ const LoginWindow = (props) => {
             action="/login"
             method="POST"
             className="mainForm"
+            class="field-row-stacked"
         >
-            <label htmlFor="username">Username: </label>
+            <label htmlFor="username">Screen Name: </label>
             <input id="user" type="text" name="username" placeholder="username" />
             <label htmlFor="pass">Password: </label>
             <input id="pass" type="password" name="pass" placeholder="password" />
@@ -69,13 +70,14 @@ const SignupWindow = (props) => {
             action="/signup"
             method="POST"
             className="mainForm"
+            class="field-row-stacked"
         >
-            <label htmlFor="username">Username: </label>
+            <label htmlFor="username">Screen Name: </label>
             <input id="user" type="text" name="username" placeholder="username" />
-            <label htmlFor="pass">Password: </label>
+            <label htmlFor="pass">Secret Password: </label>
             <input id="pass" type="password" name="pass" placeholder="password" />
-            <label htmlFor="pass2">Password: </label>
-            <input id="pass2" type="password" name="pass2" placeholder="retype password" />
+            <label htmlFor="pass2">Re-type Password: </label>
+            <input id="pass2" type="password" name="pass2" placeholder="password" />
             <input className="formSubmit" type="submit" value="Sign up" />.
         </form>
     );
@@ -89,12 +91,16 @@ const init = () => {
 
     loginButton.addEventListener('click', (e) => {
         e.preventDefault();
+        loginButton.parentElement.ariaSelected = "true";
+        signupButton.parentElement.ariaSelected = "false";
         root.render( <LoginWindow /> );
         return false;
     });
 
     signupButton.addEventListener('click', (e) => {
         e.preventDefault();
+        loginButton.parentElement.ariaSelected = "false";
+        signupButton.parentElement.ariaSelected = "true";
         root.render( <SignupWindow /> );
         return false;
     });

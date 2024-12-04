@@ -6,7 +6,7 @@ const { useState, useEffect } = React;
 const { createRoot } = require('react-dom/client');
 
 
-let selectedDeckName = "";
+let selectedDeckName = "No Deck Selected";
 
 const handleDeck = (e, onDeckAdded) => {
     e.preventDefault();
@@ -125,7 +125,8 @@ const handleRemoveCard = (e, onCardRemoved) => {
     e.preventDefault();
     helper.hideError();
 
-    const cardName = e.target.querySelector('#cardName').innerHTML;
+    /*
+    const cardName = e.target.parentElement.querySelector('#cardName').innerHTML;
 
     if(!cardName) {
         helper.handleError('Error removing card!');
@@ -133,6 +134,7 @@ const handleRemoveCard = (e, onCardRemoved) => {
     }
 
     helper.sendPost(e.target.action, {selectedDeckName, cardName}, onCardRemoved);
+    */
     
     return false;
 }
@@ -152,7 +154,9 @@ const DeckList = (props) => {
     if(cards) {
         const cardNodes = cards.map(card => {
             return (
-                <li>
+                <li class="cardDisplay">
+                    <p id="cardInfoDisplay">{card.cardCount}x  |  <strong id="cardName">{card.cardName}</strong></p>
+                    <img id="cardImageDisplay" src={card.cardImage} alt="Card Image" width="180px"></img>
                     <form id="removeCardForm"
                     onSubmit={(e) => handleRemoveCard(e, props.triggerReload)}
                     name="removeCardForm"
@@ -161,8 +165,8 @@ const DeckList = (props) => {
                     className="removeCardForm"
                     value={card.cardName}
                     >
-                        <p>{card.cardCount} | <a id="cardName" href={card.cardImage}>{card.cardName}   </a></p>
-                        <input className="removeCardSubmit" type="submit" value="Remove" />
+                        <button id="cardMoveButton" disabled>Move to Side</button>
+                        <input id="cardRemoveButton" className="removeCardSubmit" type="submit" value="Remove" />
                     </form>
                 </li>
             );
@@ -170,7 +174,6 @@ const DeckList = (props) => {
         
         return ( 
             <div className="deckList">
-                <h2>{selectedDeckName}</h2>
                 <ul id="cardsList">
                     {cardNodes}
                 </ul> 
@@ -179,7 +182,6 @@ const DeckList = (props) => {
     } else {
         return ( 
             <div className="deckList">
-                <h2>{selectedDeckName}</h2>
                 <p>There are currently no cards in this deck.</p>
             </div>
         );
@@ -200,12 +202,25 @@ const App = () => {
                 <DeckDropdown decks={[]} reloadDecks={reloadDecks} />
             </div>
             <hr></hr>
-            <div id="addCard">
-                <AddCardForm triggerReload={() => setReloadCards(!reloadCards)} />
-            </div>
-            <div if="cards">
-                <DeckList cards={[]} reloadCards={reloadCards}/>
-            </div>
+            <h3>{selectedDeckName}</h3>
+            <fieldset>
+                <legend>Editor</legend>
+                <div id="addCard">
+                    <AddCardForm triggerReload={() => setReloadCards(!reloadCards)} />
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Maindeck</legend>
+                <pre>
+                    <div if="cards">
+                        <DeckList cards={[]} reloadCards={reloadCards}/>
+                    </div>
+                </pre>
+            </fieldset>
+            <fieldset>
+                <legend>Sideboard</legend>
+                <p><i>Currently Unavaliable.</i></p>
+            </fieldset>
         </div>
     );
 };

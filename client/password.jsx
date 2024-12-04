@@ -39,6 +39,7 @@ const ChangePasswordWindow = (props) => {
             action="/changePassword"
             method="POST"
             className="mainForm"
+            class="field-row-stacked"
         >
             
             <label htmlFor="pass">Current Password: </label>
@@ -47,7 +48,7 @@ const ChangePasswordWindow = (props) => {
             <input id="newPass" type="password" name="newPass" placeholder="new password" />
             <label htmlFor="newPass2">New Password: </label>
             <input id="newPass2" type="password" name="newPass2" placeholder="retype new password" />
-            <input className="formSubmit" type="submit" value="Change Password" />.
+            <input className="formSubmit" type="submit" value="Change Password" />
         </form>
     );
 };
