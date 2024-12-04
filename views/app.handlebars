@@ -7,37 +7,39 @@
   <link rel="stylesheet" type="text/css" href="/assets/style.css"/>
 </head>
 <body>
-  <div class="main window" style="width: 80%">
-    <div class="title-bar">
-      <div class="title-bar-text"></div>
-      <div class="title-bar-controls">
-        <a href="https://mtg.fandom.com/wiki/Old_School" target="_blank"><button aria-label="Help"></button></a>
-      </div>
-    </div>
-
-    <img src="/assets/img/title-banner.png" alt="Boomer Deck Builder: Old School MAGIC: THE GATHERING on the world wide web!" width="100%">
-
-    <br>
-
-    <div class="window-body">
-
-      <menu role="tablist">
-        <li class="navlink" role="tab" aria-selected="true"><a id="builderButton" href="/maker">Builder</a></li>
-        <li class="navlink" role="tab" aria-selected="false"><a id="changePasswordButton" href="/changePassword">Change Password</a></li>
-        <li class="navlink" role="tab" aria-selected="false"><a id="logoutButton" href="/logout">Log Out</a></li>
-      </menu>
-
-      <div class="window" role="tabpanel">
-        <div class="window-body">
-          <section id="app"></section>
+  <div id="siteContent">
+    <div class="main window" style="width: 80%">
+      <div class="title-bar">
+        <div class="title-bar-text"></div>
+        <div class="title-bar-controls">
+          <a href="https://mtg.fandom.com/wiki/Old_School" target="_blank"><button aria-label="Help"></button></a>
         </div>
       </div>
 
-      <div id="userMessage" class='hidden'>
-        <h3><span id="errorMessage"></span></h3>
-      </div>
-    </div>
+      <img src="/assets/img/title-banner.png" alt="Boomer Deck Builder: Old School MAGIC: THE GATHERING on the world wide web!" width="100%">
 
+      <br>
+
+      <div class="window-body">
+
+        <menu role="tablist">
+          <li class="navlink" role="tab" aria-selected="true"><a id="builderButton" href="/maker">Builder</a></li>
+          <li class="navlink" role="tab" aria-selected="false"><a id="changePasswordButton" href="/changePassword">Change Password</a></li>
+          <li class="navlink" role="tab" aria-selected="false"><a id="logoutButton" href="/logout">Log Out</a></li>
+        </menu>
+
+        <div class="window" role="tabpanel">
+          <div class="window-body">
+            <section id="app"></section>
+          </div>
+        </div>
+
+        <div id="userMessage" class='hidden'>
+          <h3><span id="errorMessage"></span></h3>
+        </div>
+      </div>
+
+    </div>
   </div>
   <footer>
     <p>Created by Dylan Pegg ©</p>

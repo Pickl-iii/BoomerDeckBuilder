@@ -8,11 +8,21 @@ html, body {
     background-repeat: repeat;
 }
 
-
-
 .main {
     margin: 2.5% auto;
     height: auto;
+}
+
+#siteContent {
+    width: 80%;
+    margin: auto;
+}
+
+@media screen and (min-width: 1080px) {
+    #siteContent {
+        width: 960px;
+        margin: auto;
+    }
 }
 
 .field-row-stacked {
@@ -49,13 +59,15 @@ select {
 }
 
 .cardDisplay {
-    margin: 15px;
+    margin: 25px;
     text-align:center;
+    align-items: center;
 }
 
 .cardDisplay span {
     display: flex;
     justify-content: space-between;
+    margin: 15px;
 }
 
 #cardInfoDisplay {

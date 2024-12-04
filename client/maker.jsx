@@ -8,7 +8,7 @@ const { createRoot } = require('react-dom/client');
 
 let selectedDeckName = "No Deck Selected";
 
-const handleDeck = (e, onDeckAdded) => {
+const handleNewDeck = (e, onDeckAdded) => {
     e.preventDefault();
     helper.hideError();
 
@@ -27,7 +27,7 @@ const handleDeck = (e, onDeckAdded) => {
 const DeckForm = (props) => {
     return(
         <form id="deckForm"
-            onSubmit={(e) => handleDeck(e, props.triggerReload)}
+            onSubmit={(e) => handleNewDeck(e, props.triggerReload)}
             name="deckForm"
             action="/maker"
             method="POST"
@@ -125,7 +125,6 @@ const handleRemoveCard = (e, onCardRemoved) => {
     e.preventDefault();
     helper.hideError();
 
-    /*
     const cardName = e.target.parentElement.querySelector('#cardName').innerHTML;
 
     if(!cardName) {
@@ -134,7 +133,6 @@ const handleRemoveCard = (e, onCardRemoved) => {
     }
 
     helper.sendPost(e.target.action, {selectedDeckName, cardName}, onCardRemoved);
-    */
     
     return false;
 }
