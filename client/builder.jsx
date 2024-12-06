@@ -34,8 +34,7 @@ const handleSelectDeck = (e, onDeckSelected) => {
 
     const name = e.target.querySelector('#existingDeck').value;
 
-    // TO-DO: Figure out how to fire props.triggerReload from here.
-    // helper.runHandler(onDeckSelected);
+    onDeckSelected();
 
     selectedDeckName = name;
     return false;
@@ -241,7 +240,7 @@ const App = () => {
                 <DeckForm triggerReload={() => setReloadDecks(!reloadDecks)} />
             </div>
             <div id="decks">
-                <DeckDropdown decks={[]} reloadDecks={reloadDecks} />
+                <DeckDropdown decks={[]} reloadDecks={reloadDecks} triggerReload={() => setReloadDecks(!reloadDecks)} />
             </div>
             <hr></hr>
             <h3>{selectedDeckName}</h3>
@@ -262,7 +261,7 @@ const App = () => {
                 <legend>Maindeck</legend>
                 <pre>
                     <div id="cards">
-                        <DeckList decks={[]} reloadDecks={reloadDecks}/>
+                        <DeckList decks={[]} reloadDecks={reloadDecks} triggerReload={() => setReloadDecks(!reloadDecks)}/>
                     </div>
                 </pre>
             </fieldset>
