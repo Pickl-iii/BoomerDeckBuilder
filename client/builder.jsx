@@ -240,7 +240,7 @@ const App = () => {
             <div id="makeDeck">
                 <DeckForm triggerReload={() => setReloadDecks(!reloadDecks)} />
             </div>
-            <div if="decks">
+            <div id="decks">
                 <DeckDropdown decks={[]} reloadDecks={reloadDecks} />
             </div>
             <hr></hr>
@@ -261,7 +261,7 @@ const App = () => {
             <fieldset>
                 <legend>Maindeck</legend>
                 <pre>
-                    <div if="cards">
+                    <div id="cards">
                         <DeckList decks={[]} reloadDecks={reloadDecks}/>
                     </div>
                 </pre>

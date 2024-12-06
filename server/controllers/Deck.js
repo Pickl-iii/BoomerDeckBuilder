@@ -88,7 +88,7 @@ const addCard = async (req, res) => {
         });
         const eggResult = await eggResponse.json();
         if (eggResult.object !== 'error') {
-          return res.status(418).json({ error: 'TIME-TRAVEL ERROR: The year is 1995...' });
+          return res.status(418).json({ error: 'TIME-TRAVEL ERROR: The year is 1994...' });
         }
 
         return res.status(500).json({ error: 'ERROR: The requested card does not exist.' });
@@ -108,24 +108,23 @@ const addCard = async (req, res) => {
 
       if (duplicateCard) {
         // If duplicate, update count to new number.
-        console.log('DUPLICATE CARD DETECTED!');
-        /*
-        Deck.findOneAndUpdate(
-          { name: req.body.selectedDeckName },
+        // Tutorial: https://www.mongodb.com/docs/manual/reference/operator/update/positional/
+        Deck.updateOne(
           {
-            cards: {
-              cardName: scryfallCard.cardName,
-              cardImage: scryfallCard.cardImage,
-              $set: { cardCount: req.body.cardCount, },
-            },
+            name: req.body.selectedDeckName,
+            'cards.cardName': scryfallCard.cardName,
+          },
+          {
+            $set: { 'cards.$.cardCount': req.body.cardCount },
           },
         ).exec();
 
-        return res.status(201).json({
-          name: req.body.selectedDeckName,
-          cardsAdded: req.body.cardName,
-        });
-        */
+        return res.status(201).json(
+          {
+            name: req.body.selectedDeckName,
+            cardsAdded: req.body.cardName,
+          },
+        );
       }
 
       Deck.findOneAndUpdate(
@@ -160,6 +159,19 @@ const removeCard = async (req, res) => {
   }
 
   try {
+    const query = { owner: req.session.account._id };
+    const docs = await Deck.find(query).select('name cards').lean().exec();
+
+    // Confirm requested deck exists on account and card is currently in the deck
+    const decklist = docs.find((deck) => deck.name === req.body.selectedDeckName);
+    if (!decklist) {
+      return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating deck!' });
+    }
+    const cardExists = decklist.cards.find((card) => card.cardName === req.body.cardName);
+    if (!cardExists) {
+      return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card!' });
+    }
+
     // Tutorial Used: https://www.geeksforgeeks.org/mongoose-remove-function/
     await Deck.findOneAndUpdate(
       { name: req.body.selectedDeckName },
