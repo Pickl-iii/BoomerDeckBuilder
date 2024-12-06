@@ -1,4 +1,4 @@
-// SOURCE: Based on code provided as part of a class assignment. Code has been modified.
+// SOURCE: Based on code provided as part of a class assignment. Code has not been modified.
 
 const requiresLogin = (req, res, next) => {
   if (!req.session.account) {
@@ -10,7 +10,7 @@ const requiresLogin = (req, res, next) => {
 
 const requiresLogout = (req, res, next) => {
   if (req.session.account) {
-    return res.redirect('/maker');
+    return res.redirect('/builder');
   }
 
   return next();

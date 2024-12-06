@@ -4,21 +4,18 @@ const controllers = require('./controllers');
 const mid = require('./middleware');
 
 const router = (app) => {
-  app.get('/getDecks', mid.requiresLogin, controllers.Deck.getDeckNames);
-  app.get('/getCards', mid.requiresLogin, controllers.Deck.getCardsFromDeck);
+  app.get('/getDeckData', mid.requiresLogin, controllers.Deck.getDeckData);
 
   app.get('/login', mid.requiresSecure, mid.requiresLogout, controllers.Account.loginPage);
   app.post('/login', mid.requiresSecure, mid.requiresLogout, controllers.Account.login);
 
   app.post('/signup', mid.requiresSecure, mid.requiresLogout, controllers.Account.signup);
-
-  app.get('/changePassword', mid.requiresSecure, mid.requiresLogin, controllers.Account.changePasswordPage);
-  app.post('/changePassword', mid.requiresSecure, mid.requiresLogin, controllers.Account.changePassword);
+  app.post('/changePassword', mid.requiresSecure, controllers.Account.changePassword);
 
   app.get('/logout', mid.requiresLogin, controllers.Account.logout);
 
-  app.get('/maker', mid.requiresLogin, controllers.Deck.makerPage);
-  app.post('/maker', mid.requiresLogin, controllers.Deck.createDeck);
+  app.get('/builder', mid.requiresLogin, controllers.Deck.builderPage);
+  app.post('/builder', mid.requiresLogin, controllers.Deck.createDeck);
 
   app.post('/addCard', mid.requiresLogin, controllers.Deck.addCard);
   app.post('/removeCard', mid.requiresLogin, controllers.Deck.removeCard);

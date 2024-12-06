@@ -25,19 +25,18 @@
         <menu role="tablist">
           <li class="navlink" role="tab" aria-selected="true"><a id="loginButton" href="/login">Log in</a></li>
           <li class="navlink" role="tab" aria-selected="false"><a id="signupButton" href="/signup">Sign up</a></li>
+          <li class="navlink" role="tab" aria-selected="false"><a id="changePasswordButton" href="/changePassword">Update Password</a></li>
         </menu>
 
         <div class="window" role="tabpanel">
           <div class="window-body">
             <section id="content"></section>
+            <div id="userMessage" class='hidden'>
+              <p><strong id="errorMessage"></strong></p>
+            </div>
           </div>
         </div>
-
-        <div id="userMessage" class='hidden'>
-          <h3><span id="errorMessage"></span></h3>
-        </div>
       </div>
-
     </div>
   </div>
   <footer>

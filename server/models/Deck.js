@@ -20,7 +20,6 @@ const CardSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1,
-    max: 4,
   },
 });
 
@@ -29,7 +28,7 @@ const DeckSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    unique: false,
+    unique: true,
     set: setName,
   },
   cards: {
