@@ -12,6 +12,14 @@ const createDeck = async (req, res) => {
     return res.status(400).json({ error: 'ERROR: Deck requires a name!' });
   }
 
+  const query = { owner: req.session.account._id };
+  const docs = await Deck.find(query).select('name maindeck sideboard').lean().exec();
+
+  // Confirm requested deck exists on account
+  if (docs.find((deck) => deck.name === req.body.selectedDeckName)) {
+    return res.status(400).json({ error: 'ERROR: Deck name already in use!' });
+  }
+
   const deckData = {
     name: req.body.selectedDeckName,
     maindeck: [],
@@ -22,10 +30,11 @@ const createDeck = async (req, res) => {
   try {
     const newDeck = new Deck(deckData);
     await newDeck.save();
-    return res.status(201).json({ 
-      name: newDeck.name, 
-      maindeck: newDeck.maindeck, 
-      sideboard: newDeck.sideboard });
+    return res.status(201).json({
+      name: newDeck.name,
+      maindeck: newDeck.maindeck,
+      sideboard: newDeck.sideboard,
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong creating a new deck!' });
