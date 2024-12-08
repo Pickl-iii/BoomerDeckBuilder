@@ -22,7 +22,10 @@ const createDeck = async (req, res) => {
   try {
     const newDeck = new Deck(deckData);
     await newDeck.save();
-    return res.status(201).json({ name: newDeck.name, maindeck: newDeck.maindeck, sideboard: newDeck.sideboard });
+    return res.status(201).json({ 
+      name: newDeck.name, 
+      maindeck: newDeck.maindeck, 
+      sideboard: newDeck.sideboard });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong creating a new deck!' });
@@ -44,8 +47,8 @@ const getDeckData = async (req, res) => {
 // Attempt to add a given card to the current deck
 const addCard = async (req, res) => {
   // Check that all fields are valid
-  if (!(req.body.cardId || req.body.cardName) || 
-  !req.body.selectedDeckName || !req.body.cardCount || !req.body.cardLocation) {
+  if (!(req.body.cardId || req.body.cardName)
+  || !req.body.selectedDeckName || !req.body.cardCount || !req.body.cardLocation) {
     return res.status(400).json({ error: 'ERROR: All fields are required!' });
   }
 
@@ -134,7 +137,7 @@ const addCard = async (req, res) => {
             cardLocation: req.body.cardLocation,
           },
         );
-      } else if (duplicateCardSide) {
+      } if (duplicateCardSide) {
         Deck.updateOne(
           {
             name: req.body.selectedDeckName,
@@ -152,7 +155,7 @@ const addCard = async (req, res) => {
             cardLocation: req.body.cardLocation,
           },
         );
-      };
+      }
 
       if (req.body.cardLocation === 'maindeck') {
         Deck.findOneAndUpdate(
@@ -211,7 +214,7 @@ const removeCard = async (req, res) => {
       return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating deck!' });
     }
 
-    if(req.body.cardLocation === "maindeck") {
+    if (req.body.cardLocation === 'maindeck') {
       const cardExists = decklist.maindeck.find((card) => card.cardName === req.body.cardName);
       if (!cardExists) {
         return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card in mainboard!' });
@@ -248,7 +251,6 @@ const removeCard = async (req, res) => {
       cardsRemoved: req.body.cardName,
       cardLocation: req.body.cardLocation,
     });
-    
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong editing a deck!' });
@@ -271,7 +273,7 @@ const swapCardLocation = async (req, res) => {
       return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating deck!' });
     }
 
-    if(req.body.cardLocation === "maindeck") {
+    if (req.body.cardLocation === 'maindeck') {
       const cardExists = decklist.maindeck.find((card) => card.cardName === req.body.cardName);
       if (!cardExists) {
         return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card in mainboard!' });
@@ -332,7 +334,6 @@ const swapCardLocation = async (req, res) => {
       cardsSwitched: req.body.cardName,
       cardLocation: req.body.cardLocation,
     });
-    
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong editing a deck!' });
