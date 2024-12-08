@@ -40,6 +40,35 @@ const handleSelectDeck = (e, onDeckSelected) => {
     return false;
 };
 
+// Deletes the current selected deck
+const handleDeleteDeck = (e, onDeckDeleted) => {
+    e.preventDefault();
+    helper.hideError();
+    helper.hideOptions();
+
+    if(!selectedDeckName || selectedDeckName === "[No Deck Selected]") {
+        helper.handleError('ERROR: Deck name not found!');
+        return false;
+    };
+
+    helper.sendPost(e.target.action, {selectedDeckName});
+
+    selectedDeckName = "[No Deck Selected]";
+
+    // This is awful and i am sorry but also it just works
+    e.target.parentElement.parentElement.querySelector('#existingDeck')
+        .value = "[No Deck Selected]";
+
+    // Can't be called in helper since selectedDeckName needs to be updated first
+    onDeckDeleted();
+
+    // NEED HELP FROM AUSTIN:
+    //// Data is succesffuly deleted and page "refreshes", but deleted deck name still
+    //// appears in dropdown until a different deck is selected.
+
+    return false;
+}
+
 // Sends a POST request for adding a card to the current deck
 const handleAddCard = (e, onCardAdded) => {
     e.preventDefault();
@@ -143,12 +172,6 @@ const DeckDropdown = (props) => {
                 </option>
             );
         });
-    } else {
-        deckNodes = (
-            <option value="[No Deck Selected]" disabled selected>
-                No Decks Exist!
-            </option>
-        );
     };
     
     return (
@@ -162,6 +185,32 @@ const DeckDropdown = (props) => {
                 {deckNodes}
             </select> 
         </form>
+    );
+};
+
+// Renders buttons to export/delete deck
+const DeckOptions = (props) => {
+    return(
+        <div>
+            <form id="shareForm"
+                onSubmit={(e) => handleShareDeck(e, props.triggerReload)}
+                name="shareForm"
+                action="/shareDeck"
+                method="POST"
+                className="shareForm"
+            >
+                <input className="shareDeckSubmit" type="submit" value="Share Deck" />
+            </form>
+            <form id="deleteForm"
+                onSubmit={(e) => handleDeleteDeck(e, props.triggerReload)}
+                name="deleteForm"
+                action="/deleteDeck"
+                method="POST"
+                className="deleteForm"
+            >
+                <input className="deleteDeckSubmit" type="submit" value="Delete Deck" />
+            </form>
+        </div>
     );
 };
 
@@ -372,6 +421,9 @@ const App = () => {
             <img src="/assets/img/banner-ad-1.png" alt="Your advertisement here!" width="100%"></img>
             <hr></hr>
             <h3>{selectedDeckName}</h3>
+            {selectedDeckName !== "[No Deck Selected]" &&
+                <DeckOptions triggerReload={() => setReloadDecks(!reloadDecks)} />
+            }   
             {selectedDeckName !== "[No Deck Selected]" &&
                 <fieldset>
                     <legend>Editor</legend>

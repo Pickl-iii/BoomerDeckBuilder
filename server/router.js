@@ -17,6 +17,8 @@ const router = (app) => {
   app.get('/builder', mid.requiresLogin, controllers.Deck.builderPage);
   app.post('/builder', mid.requiresLogin, controllers.Deck.createDeck);
 
+  app.post('/deleteDeck', mid.requiresLogin, controllers.Deck.deleteDeck);
+
   app.post('/addCard', mid.requiresLogin, controllers.Deck.addCard);
   app.post('/removeCard', mid.requiresLogin, controllers.Deck.removeCard);
   app.post('/swapCardLocation', mid.requiresLogin, controllers.Deck.swapCardLocation);

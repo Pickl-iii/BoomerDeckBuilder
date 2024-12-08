@@ -41,6 +41,27 @@ const createDeck = async (req, res) => {
   }
 };
 
+// Attempt to delete a given deck from database
+const deleteDeck = async (req, res) => {
+  if (!req.body.selectedDeckName) {
+    return res.status(400).json({ error: 'ERROR: Deck name not found!' });
+  }
+
+  try {
+    await Deck.deleteOne(
+      {
+        name: req.body.selectedDeckName,
+      },
+    ).exec();
+    return res.status(201).json({
+      name: req.body.selectedDeckName,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'SERVER ERROR: Something went wrong deleting a deck!' });
+  }
+};
+
 // Attempt to retrieve deck and card data from database
 const getDeckData = async (req, res) => {
   try {
@@ -352,6 +373,7 @@ const swapCardLocation = async (req, res) => {
 module.exports = {
   builderPage,
   createDeck,
+  deleteDeck,
   getDeckData,
   addCard,
   removeCard,
