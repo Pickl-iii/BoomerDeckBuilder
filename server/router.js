@@ -19,8 +19,10 @@ const router = (app) => {
 
   app.post('/addCard', mid.requiresLogin, controllers.Deck.addCard);
   app.post('/removeCard', mid.requiresLogin, controllers.Deck.removeCard);
+  app.post('/swapCardLocation', mid.requiresLogin, controllers.Deck.swapCardLocation);
 
   app.get('/', mid.requiresSecure, mid.requiresLogout, controllers.Account.loginPage);
+  app.get('/*', mid.requiresSecure, controllers.Missing.missingPage);
 };
 
 module.exports = router;

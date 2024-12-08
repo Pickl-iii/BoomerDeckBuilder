@@ -16,6 +16,7 @@ const handleCardOptions = (result, handler) => {
   const options = result.cardOptions;
   const selectedDeckName = result.deckName;
   const cardCount = result.cardCount;
+  const cardLocation = result.cardLocation;
 
   // TUTORIAL: https://www.geeksforgeeks.org/how-to-creating-html-list-from-javascript-array/
   options.forEach((option) => {
@@ -23,7 +24,7 @@ const handleCardOptions = (result, handler) => {
       let cardId = option.id
       li.innerHTML = `<a> ${option.name} </a>`;
       li.onclick = () => {
-        sendPost('/addCard', {selectedDeckName, cardId, cardCount}, handler);
+        sendPost('/addCard', {selectedDeckName, cardId, cardCount, cardLocation}, handler);
       }
       list.appendChild(li);
   })

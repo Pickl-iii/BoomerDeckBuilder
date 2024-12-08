@@ -14,14 +14,15 @@ const createDeck = async (req, res) => {
 
   const deckData = {
     name: req.body.selectedDeckName,
-    cards: [],
+    maindeck: [],
+    sideboard: [],
     owner: req.session.account._id,
   };
 
   try {
     const newDeck = new Deck(deckData);
     await newDeck.save();
-    return res.status(201).json({ name: newDeck.name, cards: newDeck.cards });
+    return res.status(201).json({ name: newDeck.name, maindeck: newDeck.maindeck, sideboard: newDeck.sideboard });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong creating a new deck!' });
@@ -32,7 +33,7 @@ const createDeck = async (req, res) => {
 const getDeckData = async (req, res) => {
   try {
     const query = { owner: req.session.account._id };
-    const docs = await Deck.find(query).select('name cards').lean().exec();
+    const docs = await Deck.find(query).select('name maindeck sideboard').lean().exec();
     return res.json({ decks: docs });
   } catch (err) {
     console.log(err);
@@ -43,21 +44,21 @@ const getDeckData = async (req, res) => {
 // Attempt to add a given card to the current deck
 const addCard = async (req, res) => {
   // Check that all fields are valid
-  if (!(req.body.cardId || req.body.cardName)
-      || !req.body.selectedDeckName || !req.body.cardCount) {
+  if (!(req.body.cardId || req.body.cardName) || 
+  !req.body.selectedDeckName || !req.body.cardCount || !req.body.cardLocation) {
     return res.status(400).json({ error: 'ERROR: All fields are required!' });
   }
 
   try {
     const query = { owner: req.session.account._id };
-    const docs = await Deck.find(query).select('name cards').lean().exec();
+    const docs = await Deck.find(query).select('name maindeck sideboard').lean().exec();
 
     // Confirm requested deck exists on account
     const decklist = docs.find((deck) => deck.name === req.body.selectedDeckName);
 
     if (decklist) {
       // Make a Scryfall API call to get legal cards
-      let url = 'https://api.scryfall.com/cards/';
+      let url = process.env.SCRYFALL_URL;
 
       if (req.body.cardId) {
         url += `${req.body.cardId}`;
@@ -77,12 +78,13 @@ const addCard = async (req, res) => {
           cardOptions: result.data,
           deckName: req.body.selectedDeckName,
           cardCount: req.body.cardCount,
+          cardLocation: req.body.cardLocation,
         });
       }
 
       // If no card found on scryfall, return with error / easter egg
       if (result.object === 'error') {
-        url = `https://api.scryfall.com/cards/search?q=${req.body.cardName}`;
+        url = `${process.env.SCRYFALL_URL}search?q=${req.body.cardName}`;
         const eggResponse = await fetch(url, {
           method: 'GET',
         });
@@ -104,18 +106,24 @@ const addCard = async (req, res) => {
       }
 
       // Check if the card already exists in the list
-      const duplicateCard = decklist.cards.find((card) => card.cardName === scryfallCard.cardName);
+      const duplicateCardMain = decklist.maindeck.find(
+        (card) => card.cardName === scryfallCard.cardName,
+      );
 
-      if (duplicateCard) {
+      const duplicateCardSide = decklist.sideboard.find(
+        (card) => card.cardName === scryfallCard.cardName,
+      );
+
+      if (duplicateCardMain) {
         // If duplicate, update count to new number.
         // Tutorial: https://www.mongodb.com/docs/manual/reference/operator/update/positional/
         Deck.updateOne(
           {
             name: req.body.selectedDeckName,
-            'cards.cardName': scryfallCard.cardName,
+            'maindeck.cardName': scryfallCard.cardName,
           },
           {
-            $set: { 'cards.$.cardCount': req.body.cardCount },
+            $set: { 'maindeck.$.cardCount': req.body.cardCount },
           },
         ).exec();
 
@@ -123,26 +131,61 @@ const addCard = async (req, res) => {
           {
             name: req.body.selectedDeckName,
             cardsAdded: req.body.cardName,
+            cardLocation: req.body.cardLocation,
           },
         );
-      }
+      } else if (duplicateCardSide) {
+        Deck.updateOne(
+          {
+            name: req.body.selectedDeckName,
+            'sideboard.cardName': scryfallCard.cardName,
+          },
+          {
+            $set: { 'sideboard.$.cardCount': req.body.cardCount },
+          },
+        ).exec();
 
-      Deck.findOneAndUpdate(
-        { name: req.body.selectedDeckName },
-        {
-          $push: {
-            cards: {
-              cardName: scryfallCard.cardName,
-              cardImage: scryfallCard.cardImage,
-              cardCount: req.body.cardCount,
+        return res.status(201).json(
+          {
+            name: req.body.selectedDeckName,
+            cardsAdded: req.body.cardName,
+            cardLocation: req.body.cardLocation,
+          },
+        );
+      };
+
+      if (req.body.cardLocation === 'maindeck') {
+        Deck.findOneAndUpdate(
+          { name: req.body.selectedDeckName },
+          {
+            $push: {
+              maindeck: {
+                cardName: scryfallCard.cardName,
+                cardImage: scryfallCard.cardImage,
+                cardCount: req.body.cardCount,
+              },
             },
           },
-        },
-      ).exec();
+        ).exec();
+      } else {
+        Deck.findOneAndUpdate(
+          { name: req.body.selectedDeckName },
+          {
+            $push: {
+              sideboard: {
+                cardName: scryfallCard.cardName,
+                cardImage: scryfallCard.cardImage,
+                cardCount: req.body.cardCount,
+              },
+            },
+          },
+        ).exec();
+      }
 
       return res.status(201).json({
         name: req.body.selectedDeckName,
         cardsAdded: req.body.cardName,
+        cardLocation: req.body.cardLocation,
       });
     }
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating deck!' });
@@ -154,40 +197,142 @@ const addCard = async (req, res) => {
 
 // Attempts to remove a given card from curretn deck
 const removeCard = async (req, res) => {
-  if (!req.body.selectedDeckName || !req.body.cardName) {
+  if (!req.body.selectedDeckName || !req.body.cardName || !req.body.cardLocation) {
     return res.status(400).json({ error: 'ERROR: All fields are required!' });
   }
 
   try {
     const query = { owner: req.session.account._id };
-    const docs = await Deck.find(query).select('name cards').lean().exec();
+    const docs = await Deck.find(query).select('name maindeck sideboard').lean().exec();
 
     // Confirm requested deck exists on account and card is currently in the deck
     const decklist = docs.find((deck) => deck.name === req.body.selectedDeckName);
     if (!decklist) {
       return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating deck!' });
     }
-    const cardExists = decklist.cards.find((card) => card.cardName === req.body.cardName);
-    if (!cardExists) {
-      return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card!' });
-    }
 
-    // Tutorial Used: https://www.geeksforgeeks.org/mongoose-remove-function/
-    await Deck.findOneAndUpdate(
-      { name: req.body.selectedDeckName },
-      {
-        $pull: {
-          cards: {
-            cardName: req.body.cardName,
+    if(req.body.cardLocation === "maindeck") {
+      const cardExists = decklist.maindeck.find((card) => card.cardName === req.body.cardName);
+      if (!cardExists) {
+        return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card in mainboard!' });
+      }
+      await Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        {
+          $pull: {
+            maindeck: {
+              cardName: req.body.cardName,
+            },
           },
         },
-      },
-    ).exec();
+      ).exec();
+    } else {
+      const cardExists = decklist.sideboard.find((card) => card.cardName === req.body.cardName);
+      if (!cardExists) {
+        return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card in sideboard!' });
+      }
+      await Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        {
+          $pull: {
+            sideboard: {
+              cardName: req.body.cardName,
+            },
+          },
+        },
+      ).exec();
+    }
 
     return res.status(201).json({
       name: req.body.selectedDeckName,
       cardsRemoved: req.body.cardName,
+      cardLocation: req.body.cardLocation,
     });
+    
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'SERVER ERROR: Something went wrong editing a deck!' });
+  }
+};
+
+// Attempts to remove a given card from curretn deck
+const swapCardLocation = async (req, res) => {
+  if (!req.body.selectedDeckName || !req.body.cardName || !req.body.cardLocation) {
+    return res.status(400).json({ error: 'ERROR: All fields are required!' });
+  }
+
+  try {
+    const query = { owner: req.session.account._id };
+    const docs = await Deck.find(query).select('name maindeck sideboard').lean().exec();
+
+    // Confirm requested deck exists on account and card is currently in the deck
+    const decklist = docs.find((deck) => deck.name === req.body.selectedDeckName);
+    if (!decklist) {
+      return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating deck!' });
+    }
+
+    if(req.body.cardLocation === "maindeck") {
+      const cardExists = decklist.maindeck.find((card) => card.cardName === req.body.cardName);
+      if (!cardExists) {
+        return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card in mainboard!' });
+      }
+      await Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        {
+          $push: {
+            sideboard: {
+              cardName: cardExists.cardName,
+              cardImage: cardExists.cardImage,
+              cardCount: cardExists.cardCount,
+            },
+          },
+        },
+      ).exec();
+      await Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        {
+          $pull: {
+            maindeck: {
+              cardName: req.body.cardName,
+            },
+          },
+        },
+      ).exec();
+    } else {
+      const cardExists = decklist.sideboard.find((card) => card.cardName === req.body.cardName);
+      if (!cardExists) {
+        return res.status(500).json({ error: 'SERVER ERROR: Something went wrong locating card in sideboard!' });
+      }
+      await Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        {
+          $push: {
+            maindeck: {
+              cardName: cardExists.cardName,
+              cardImage: cardExists.cardImage,
+              cardCount: cardExists.cardCount,
+            },
+          },
+        },
+      ).exec();
+      await Deck.findOneAndUpdate(
+        { name: req.body.selectedDeckName },
+        {
+          $pull: {
+            sideboard: {
+              cardName: req.body.cardName,
+            },
+          },
+        },
+      ).exec();
+    }
+
+    return res.status(201).json({
+      name: req.body.selectedDeckName,
+      cardsSwitched: req.body.cardName,
+      cardLocation: req.body.cardLocation,
+    });
+    
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'SERVER ERROR: Something went wrong editing a deck!' });
@@ -200,4 +345,5 @@ module.exports = {
   getDeckData,
   addCard,
   removeCard,
+  swapCardLocation,
 };

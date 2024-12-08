@@ -32,7 +32,7 @@ const handleSelectDeck = (e, onDeckSelected) => {
     helper.hideError();
     helper.hideOptions();
 
-    const name = e.target.querySelector('#existingDeck').value;
+    const name = e.target.value;
 
     onDeckSelected();
 
@@ -48,8 +48,9 @@ const handleAddCard = (e, onCardAdded) => {
 
     const cardName = e.target.querySelector('#cardName').value;
     const cardCount = e.target.querySelector('#cardCount').value;
+    const cardLocation = e.target.querySelector('#cardLocation').value;
 
-    if(!cardName || !cardCount) {
+    if(!cardName || !cardCount || !cardLocation) {
         helper.handleError('ERROR: All fields are required!');
         return false;
     }
@@ -59,24 +60,44 @@ const handleAddCard = (e, onCardAdded) => {
         return false;
     }
 
-    helper.sendPost(e.target.action, {selectedDeckName, cardName, cardCount}, onCardAdded);
+    helper.sendPost(e.target.action, {selectedDeckName, cardName, cardCount, cardLocation}, onCardAdded);
     return false;
 };
 
 // Sends a POST request for removing a card from the current deck
-const handleRemoveCard = (e, onCardRemoved) => {
+const handleRemoveCard = (e, cardData, onCardRemoved) => {
     e.preventDefault();
     helper.hideError();
     helper.hideOptions();
 
-    const cardName = e.target.parentElement.querySelector('#cardName').innerHTML;
+    const cardName = cardData.cardName;
+    const cardLocation = cardData.cardLocation;
 
     if(!cardName) {
         helper.handleError('ERROR: Something went wrong removing a card!');
         return false;
     }
 
-    helper.sendPost(e.target.action, {selectedDeckName, cardName}, onCardRemoved);
+    helper.sendPost(e.target.action, {selectedDeckName, cardName, cardLocation}, onCardRemoved);
+    
+    return false;
+};
+
+// Sends a POST request for swapping a card's location in the current deck
+const handleSwapCardLocation = (e, cardData, onCardRemoved) => {
+    e.preventDefault();
+    helper.hideError();
+    helper.hideOptions();
+
+    const cardName = cardData.cardName;
+    const cardLocation = cardData.cardLocation;
+
+    if(!cardName) {
+        helper.handleError('ERROR: Something went wrong moving a card!');
+        return false;
+    }
+
+    helper.sendPost(e.target.action, {selectedDeckName, cardName, cardLocation}, onCardRemoved);
     
     return false;
 };
@@ -124,7 +145,7 @@ const DeckDropdown = (props) => {
         });
     } else {
         deckNodes = (
-            <option value="[No Deck Selected]">
+            <option value="[No Deck Selected]" disabled selected>
                 No Decks Exist!
             </option>
         );
@@ -132,17 +153,14 @@ const DeckDropdown = (props) => {
     
     return (
         <form id="selectForm"
-            onSubmit={(e) => handleSelectDeck(e, props.triggerReload)}
             name="selectForm"
-            action="/builder"
-            method="GET"
             className="selectForm"
         >
             <label for="existingDeck">or select an existing Deck: </label>
-            <select name="existingDeck" id="existingDeck">
+            <select name="existingDeck" id="existingDeck" onChange={(e) => handleSelectDeck(e, props.triggerReload)}>
+                <option value="[No Deck Selected]" selected>Choose a Deck:</option>
                 {deckNodes}
             </select> 
-            <input className="selectDeckSubmit" type="submit" value="Edit" />
         </form>
     );
 };
@@ -161,12 +179,17 @@ const AddCardForm = (props) => {
             <input id="cardName" type="text" name="cardName" placeholder="Card Name" />
             <label htmlFor="cardCount">Copies: </label>
             <input id="cardCount" type="number" name="cardCount" defaultValue="1" min="1"/>
+            <label htmlFor="cardLocation">Add to: </label>
+            <select name="cardLocation" id="cardLocation">
+                <option value="maindeck">Maindeck</option>
+                <option value="sideboard">Sideboard</option>
+            </select>
             <input className="addCardSubmit" type="submit" value="Add" />
         </form>
     );
 };
 
-// Renders decklist data 
+// Renders decklist data for mainboard
 const DeckList = (props) => {
     const [decks, setDecks] = useState(props.decks);
 
@@ -187,48 +210,135 @@ const DeckList = (props) => {
             </div>
         );
     }
-    
-    // Try/Catch used in case currentDeck.cards is undefined. 
-    // Probably a better way to do this but it's late and I'm tired...
-    try {
-        const currentDeck = decks.find((deck) => deck.name == selectedDeckName);
-        const cardArray = currentDeck.cards;
-     
-        // Create individual card displays as list items
-        const cardNodes = cardArray.map(currentCard => {
-            return (
-                <li class="cardDisplay">
-                    <p id="cardInfoDisplay">{currentCard.cardCount}x  |  <strong id="cardName">{currentCard.cardName}</strong></p>
-                    <img id="cardImageDisplay" src={currentCard.cardImage} alt="Card Image" width="180px"></img>
 
-                    <form id="removeCardForm"
-                    onSubmit={(e) => handleRemoveCard(e, props.triggerReload)}
-                    name="removeCardForm"
-                    action="/removeCard"
-                    method="POST"
-                    className="removeCardForm"
-                    >
-                        <button id="cardMoveButton" disabled>Move to Side</button>
-                        <input id="cardRemoveButton" className="removeCardSubmit" type="submit" value="Remove" />
-                    </form>
-                </li>
-            );
-        });
-        
-        return ( 
-            <div className="deckList">
-                <ul id="cardsList">
-                    {cardNodes}
-                </ul> 
-            </div>
-        );
-    } catch(err) {
+    const currentDeck = decks.find((deck) => deck.name == selectedDeckName);
+    const cardArray = currentDeck.maindeck;
+
+    if(cardArray.length === 0) {
         return ( 
             <div className="deckList">
                 <p>There are currently no cards in this deck. Start by adding some!</p>
             </div>
         );
     }
+    
+    // Create individual card displays as list items
+    const cardNodes = cardArray.map(currentCard => {
+        return (
+            <li class="cardDisplay">
+                <p id="cardInfoDisplay">{currentCard.cardCount}x  |  <strong id="cardName">{currentCard.cardName}</strong></p>
+                <img id="cardImageDisplay" src={currentCard.cardImage} alt="Card Image" width="180px"></img>
+
+                <form id="removeCardForm"
+                onSubmit={(e) => handleRemoveCard(e, 
+                    { cardName: currentCard.cardName, cardLocation: "maindeck", },
+                    props.triggerReload)}
+                name="removeCardForm"
+                action="/removeCard"
+                method="POST"
+                className="removeCardForm"
+                >
+                    <input id="cardRemoveButton" className="removeCardSubmit" type="submit" value="Remove" />
+                </form>
+                <form id="swapCardForm"
+                onSubmit={(e) => handleSwapCardLocation(e, 
+                    { cardName: currentCard.cardName, cardLocation: "maindeck", },
+                    props.triggerReload)}
+                name="swapCardForm"
+                action="/swapCardLocation"
+                method="POST"
+                className="swapCardForm"
+                >
+                    <input id="cardSwapButton" className="swapCardSubmit" type="submit" value="Move to Sideboard" />
+                </form>
+            </li>
+        );
+    });
+    
+    return ( 
+        <div className="deckList">
+            <ul id="cardsList">
+                {cardNodes}
+            </ul> 
+        </div>
+    );
+    
+};
+
+// Renders decklist data for sideboard
+const Sideboard = (props) => {
+    const [decks, setDecks] = useState(props.decks);
+
+    useEffect(() => {
+        const loadDecksFromServer = async () => {
+            const response = await fetch('/getDeckData');
+            const data = await response.json();
+            setDecks(data.decks);
+        };
+        loadDecksFromServer();
+    }, [props.reloadDecks]);
+
+    
+    if (selectedDeckName === "[No Deck Selected]" || selectedDeckName === "") {
+        return ( 
+            <div className="deckList">
+                <p>No deck selected.</p>
+            </div>
+        );
+    }
+    
+    
+    const currentDeck = decks.find((deck) => deck.name == selectedDeckName);
+    const cardArray = currentDeck.sideboard;
+    
+    if(cardArray.length === 0) {
+        return ( 
+            <div className="deckList">
+                <p>There are currently no cards in the sideboard.</p>
+            </div>
+        );
+    }
+
+    // Create individual card displays as list items
+    const cardNodes = cardArray.map(currentCard => {
+        return (
+            <li class="cardDisplay">
+                <p id="cardInfoDisplay">{currentCard.cardCount}x  |  <strong id="cardName" value="sideboard">{currentCard.cardName}</strong></p>
+                <img id="cardImageDisplay" src={currentCard.cardImage} alt="Card Image" width="180px"></img>
+
+                <form id="removeCardForm"
+                onSubmit={(e) => handleRemoveCard(e, 
+                    { cardName: currentCard.cardName, cardLocation: "sideboard", },
+                    props.triggerReload)}
+                name="removeCardForm"
+                action="/removeCard"
+                method="POST"
+                className="removeCardForm"
+                >
+                    <input id="cardRemoveButton" className="removeCardSubmit" type="submit" value="Remove" />
+                </form>
+                <form id="swapCardForm"
+                onSubmit={(e) => handleSwapCardLocation(e, 
+                    { cardName: currentCard.cardName, cardLocation: "sideboard", },
+                    props.triggerReload)}
+                name="swapCardForm"
+                action="/swapCardLocation"
+                method="POST"
+                className="swapCardForm"
+                >
+                    <input id="cardSwapButton" className="swapCardSubmit" type="submit" value="Move to Maindeck" />
+                </form>
+            </li>
+        );
+    });
+    
+    return ( 
+        <div className="deckList">
+            <ul id="cardsList">
+                {cardNodes}
+            </ul> 
+        </div>
+    );
 };
 
 const App = () => {
@@ -242,6 +352,8 @@ const App = () => {
             <div id="decks">
                 <DeckDropdown decks={[]} reloadDecks={reloadDecks} triggerReload={() => setReloadDecks(!reloadDecks)} />
             </div>
+            <hr></hr>
+            <img src="/assets/img/banner-ad-1.png" alt="Your advertisement here!" width="100%"></img>
             <hr></hr>
             <h3>{selectedDeckName}</h3>
             <fieldset>
@@ -260,15 +372,22 @@ const App = () => {
             <fieldset>
                 <legend>Maindeck</legend>
                 <pre>
-                    <div id="cards">
+                    <div id="maindeck">
                         <DeckList decks={[]} reloadDecks={reloadDecks} triggerReload={() => setReloadDecks(!reloadDecks)}/>
                     </div>
                 </pre>
             </fieldset>
             <fieldset>
                 <legend>Sideboard</legend>
-                <p><i>Currently Unavaliable.</i></p>
+                <pre>
+                    <div id="sideboard">
+                        <Sideboard decks={[]} reloadDecks={reloadDecks} triggerReload={() => setReloadDecks(!reloadDecks)}/>
+                    </div>
+                </pre>
             </fieldset>
+            <hr></hr>
+            <img src="/assets/img/banner-ad-2.png" alt="Your advertisement here!" width="100%"></img>
+            <hr></hr>
         </div>
     );
 };

@@ -31,7 +31,11 @@ const DeckSchema = new mongoose.Schema({
     unique: true,
     set: setName,
   },
-  cards: {
+  maindeck: {
+    type: [CardSchema],
+    required: false,
+  },
+  sideboard: {
     type: [CardSchema],
     required: false,
   },
@@ -48,9 +52,8 @@ const DeckSchema = new mongoose.Schema({
 
 DeckSchema.statics.toAPI = (doc) => ({
   name: doc.name,
-  cards: doc.cards,
+  maindeck: doc.maindeck,
 });
 
 const DeckModel = mongoose.model('Deck', DeckSchema);
-// const CardModel = mongoose.model('Card', CardSchema);
 module.exports = DeckModel;
