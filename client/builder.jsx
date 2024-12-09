@@ -7,6 +7,8 @@ const { createRoot } = require('react-dom/client');
 
 // LOCAL VARIABLE: TRACKS LOCALLY SELECTED DECK BEING EDITED
 let selectedDeckName = "[No Deck Selected]";
+let selectedDeckList = null;
+let selectedSideList = null;
 
 // Sends a POST request for creating a new deck
 const handleNewDeck = (e, onDeckAdded) => {
@@ -41,6 +43,33 @@ const handleSelectDeck = (e, onDeckSelected) => {
 };
 
 // Deletes the current selected deck
+const handleDownloadDeck = (e, onDeckDownloaded) => {
+    e.preventDefault();
+    helper.hideError();
+    helper.hideOptions();
+
+    if(!selectedDeckName || selectedDeckName === "[No Deck Selected]") {
+        helper.handleError('ERROR: Deck name not found!');
+        return false;
+    };
+
+    const decklistContent = selectedDeckList + selectedSideList;
+
+    // TUTORIAL: https://javascript.plainenglish.io/javascript-create-file-c36f8bccb3be
+    const decklistFile = new File([decklistContent], `${selectedDeckName}-decklist.txt`, {
+        type: 'text/plain',
+    });
+      
+    const link = e.target.querySelector('a');
+    const url = URL.createObjectURL(decklistFile);
+    link.href = url;
+    link.download = decklistFile.name;
+    link.click();
+
+    return false;
+}
+
+// Deletes the current selected deck
 const handleDeleteDeck = (e, onDeckDeleted) => {
     e.preventDefault();
     helper.hideError();
@@ -61,10 +90,6 @@ const handleDeleteDeck = (e, onDeckDeleted) => {
 
     // Can't be called in helper since selectedDeckName needs to be updated first
     onDeckDeleted();
-
-    // NEED HELP FROM AUSTIN:
-    //// Data is succesffuly deleted and page "refreshes", but deleted deck name still
-    //// appears in dropdown until a different deck is selected.
 
     return false;
 }
@@ -193,13 +218,12 @@ const DeckOptions = (props) => {
     return(
         <div>
             <form id="shareForm"
-                onSubmit={(e) => handleShareDeck(e, props.triggerReload)}
+                onSubmit={(e) => handleDownloadDeck(e, props.triggerReload)}
                 name="shareForm"
-                action="/shareDeck"
-                method="POST"
                 className="shareForm"
             >
-                <input className="shareDeckSubmit" type="submit" value="Share Deck" />
+                <a class="hidden">decklistAnchor</a>
+                <input className="shareDeckSubmit" type="submit" value="Download List" />
             </form>
             <form id="deleteForm"
                 onSubmit={(e) => handleDeleteDeck(e, props.triggerReload)}
@@ -266,12 +290,18 @@ const DeckList = (props) => {
         const cardArray = currentDeck.maindeck;
 
         if(cardArray.length === 0) {
+            selectedDeckList = "(Empty Maindeck)\n";
             return ( 
                 <div className="deckList">
                     <p>There are currently no cards in this deck. Start by adding some!</p>
                 </div>
             );
         }
+        
+        selectedDeckList = "MAINDECK\n";
+        cardArray.map(currentCard => {
+            return selectedDeckList += `${currentCard.cardCount} ${currentCard.cardName}\n`;
+        });
         
         // Create individual card displays as list items
         const cardNodes = cardArray.map(currentCard => {
@@ -351,12 +381,18 @@ const Sideboard = (props) => {
         const cardArray = currentDeck.sideboard;
 
         if(cardArray.length === 0) {
+            selectedSideList = "\n(Empty Sideboard)\n";
             return ( 
                 <div className="deckList">
                     <p>There are currently no cards in the sideboard.</p>
                 </div>
             );
         }
+
+        selectedSideList = "\nSIDEBOARD\n";
+        cardArray.map(currentCard => {
+            return selectedSideList += `${currentCard.cardCount} ${currentCard.cardName}\n`;
+        });
 
         // Create individual card displays as list items
         const cardNodes = cardArray.map(currentCard => {
