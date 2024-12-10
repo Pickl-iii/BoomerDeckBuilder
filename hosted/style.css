@@ -118,3 +118,8 @@ select {
 #missingContent {
     margin: 50px 30px;
 }
+
+#deckOptionsButtons {
+    display:flex;
+    flex-direction: row;
+}

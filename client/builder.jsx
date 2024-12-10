@@ -216,7 +216,7 @@ const DeckDropdown = (props) => {
 // Renders buttons to export/delete deck
 const DeckOptions = (props) => {
     return(
-        <div>
+        <div id="deckOptionsButtons">
             <form id="shareForm"
                 onSubmit={(e) => handleDownloadDeck(e, props.triggerReload)}
                 name="shareForm"
